@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency 'http', '~> 5.0'
+  spec.add_dependency 'i18n'
   spec.add_development_dependency 'dotenv'
 
   # For more information and examples about making a new gem, checkout our
