@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "version"
+require_relative 'version'
 
 require 'json'
+require 'base64'
 require 'http'
+require 'i18n'
 
 module SpotifySearch
   class Error < StandardError; end
@@ -16,13 +18,14 @@ module SpotifySearch
     end
 
     def search(artist_name, track_name)
-      artist_name = filter_string(artist_name)
+      artist_name = filter_artist_string(artist_name)
+      track_name = filter_string(track_name)
 
       req = HTTP.headers("Authorization": "Bearer #{@access_token}")
                 .get('https://api.spotify.com/v1/search',
-                    params: {
-                      q: "artist:#{artist_name.downcase} track:#{track_name.downcase}", type: 'track'
-                    })
+                     params: {
+                       q: "artist:#{artist_name.downcase} track:#{track_name.downcase}", type: 'track'
+                     })
       resp = JSON.parse(req.body.to_s)
 
       raise req.body unless req.code.to_s.start_with?('2')
@@ -35,7 +38,7 @@ module SpotifySearch
     def get_artist_id(artist_name)
       req = HTTP.headers("Authorization": "Bearer #{@access_token}")
                 .get('https://api.spotify.com/v1/search',
-                    params: { q: artist_name, type: 'artist' })
+                     params: { q: artist_name, type: 'artist' })
       raise req.body unless req.code.to_s.start_with?('2')
 
       @logger.debug("body is #{req.body}")
@@ -44,8 +47,8 @@ module SpotifySearch
       spotify_artist_name = artist_name
       if resp['artists'].instance_of?(Array) && artist_name.split(' ').size > 1
         spotify_artist_name = FuzzyMatch.new(resp['artists'].map do |r|
-                                              r['name']
-                                            end, must_match_at_least_one_word: true).find(artist_name)
+                                               r['name']
+                                             end, must_match_at_least_one_word: true).find(artist_name)
       end
 
       resp['artists']['items'].each do |result|
@@ -78,19 +81,25 @@ module SpotifySearch
     def authorize
       encoded = Base64.encode64("#{ENV['SPOTIFY_CLIENT_ID']}:#{ENV['SPOTIFY_CLIENT_SECRET']}").gsub(/\n/, '')
       resp = HTTP.headers("Authorization": "Basic #{encoded}")
-                .post('https://accounts.spotify.com/api/token',
-                      form: { grant_type: 'client_credentials' })
+                 .post('https://accounts.spotify.com/api/token',
+                       form: { grant_type: 'client_credentials' })
       raise resp.body unless resp.code.to_s.start_with?('2')
 
       json = JSON.parse(resp.body.to_s)
       json['access_token']
     end
 
+    def filter_artist_string(string)
+      filter_string(string).sub(/the /i, '')
+    end
+
     def filter_string(string)
-      string
-        .sub(/&amp;/, '&')
-        .sub(/’/, '')
-        .sub(/ EP/, '')
+      I18n::Backend::Transliterator.get.transliterate(string)
+                                   .sub(/&amp;/, '&')
+                                   .sub(/’/, '')
+                                   .sub(/'/, '')
+                                   .sub(/ EP/, '')
+                                   .gsub(/\(.*\)/, '').strip
     end
   end
 end
