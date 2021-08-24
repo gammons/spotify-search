@@ -20,7 +20,7 @@ module SpotifySearch
     end
 
     # Given an artist name and a track name, find the information that spotify has on the
-    def search(artist_name, track_name)
+    def track_search(artist_name, track_name)
       artist_name = filter_artist_string(artist_name)
       track_name = filter_string(track_name)
 
@@ -36,7 +36,23 @@ module SpotifySearch
       resp['tracks'] && resp['tracks']['items'] && resp['tracks']['items'][0]
     end
 
-    def tracks(album_id); end
+    def album_search(artist_name, album_name)
+      artist_name = filter_artist_string(artist_name)
+      album_name = filter_string(album_name)
+
+      req = HTTP.headers("Authorization": "Bearer #{@access_token}")
+                .get('https://api.spotify.com/v1/search',
+                     params: {
+                       q: "artist:#{artist_name.downcase} album:#{album_name.downcase}", type: 'album'
+                     })
+      resp = JSON.parse(req.body.to_s)
+
+      raise req.body unless req.code.to_s.start_with?('2')
+
+      resp['albums'] && resp['albums']['items'] && resp['albums']['items'][0]
+    end
+
+    private
 
     def authorize
       encoded = Base64.encode64("#{@client_id}:#{@client_secret}").gsub(/\n/, '')

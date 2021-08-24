@@ -2,7 +2,7 @@
 
 RSpec.describe SpotifySearch do
   let(:spotify) { SpotifySearch::Searcher.new }
-  let(:tests) do
+  let(:track_searches) do
     [
       {
         artist: 'Log',
@@ -61,22 +61,33 @@ RSpec.describe SpotifySearch do
     expect(SpotifySearch::VERSION).not_to be nil
   end
 
-  it 'runs' do
-    results = spotify.search('Ween', 'Sarah')
+  describe '#track_search' do
+    it 'runs' do
+      results = spotify.track_search('Ween', 'Sarah')
 
-    expect(results['album']['name']).to eq('Pure Guava')
+      expect(results['album']['name']).to eq('Pure Guava')
+    end
+
+    it 'ignores the word "the" in artist name' do
+      results = spotify.track_search('The World/Inferno Friendship Society', 'Jerusalem Boys')
+      expect(results['album']['name']).to eq('Red-Eyed Soul')
+    end
+
+    it 'finds a bunch of obscure things' do
+      track_searches.each do |test|
+        results = spotify.track_search(test[:artist], test[:song])
+        expect(results).to_not be_nil
+        expect(results['album']['name']).to eq(test[:album])
+      end
+    end
   end
 
-  it 'ignores the word "the" in artist name' do
-    results = spotify.search('The World/Inferno Friendship Society', 'Jerusalem Boys')
-    expect(results['album']['name']).to eq('Red-Eyed Soul')
-  end
+  describe '#album_search' do
+    it 'runs' do
+      results = spotify.album_search('Ween', 'Pure Guava')
 
-  it 'finds a bunch of obscure things' do
-    tests.each do |test|
-      results = spotify.search(test[:artist], test[:song])
-      expect(results).to_not be_nil
-      expect(results['album']['name']).to eq(test[:album])
+      expect(results['name']).to eq('Pure Guava')
+      expect(results['id']).to eq('4RaWphn8iwAU3i6dXVhchX')
     end
   end
 end
