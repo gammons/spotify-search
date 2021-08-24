@@ -10,13 +10,16 @@ require 'i18n'
 module SpotifySearch
   class Error < StandardError; end
 
-  class Spotify
-    def initialize
-      @client_id = ENV['SPOTIFY_CLIENT_ID']
-      @client_secret = ENV['SPOTIFY_CLIENT_SECRET']
+  # Searcher class searches for spotify information, with some specific helpers for
+  # finding obscure titles.
+  class Searcher
+    def initialize(client_id = ENV['SPOTIFY_CLIENT_ID'], client_secret = ENV['SPOTIFY_CLIENT_SECRET'])
+      @client_id = client_id
+      @client_secret = client_secret
       @access_token = authorize
     end
 
+    # Given an artist name and a track name, find the information that spotify has on the
     def search(artist_name, track_name)
       artist_name = filter_artist_string(artist_name)
       track_name = filter_string(track_name)
@@ -35,51 +38,8 @@ module SpotifySearch
 
     def tracks(album_id); end
 
-    def get_artist_id(artist_name)
-      req = HTTP.headers("Authorization": "Bearer #{@access_token}")
-                .get('https://api.spotify.com/v1/search',
-                     params: { q: artist_name, type: 'artist' })
-      raise req.body unless req.code.to_s.start_with?('2')
-
-      @logger.debug("body is #{req.body}")
-      resp = JSON.parse(req.body.to_s)
-
-      spotify_artist_name = artist_name
-      if resp['artists'].instance_of?(Array) && artist_name.split(' ').size > 1
-        spotify_artist_name = FuzzyMatch.new(resp['artists'].map do |r|
-                                               r['name']
-                                             end, must_match_at_least_one_word: true).find(artist_name)
-      end
-
-      resp['artists']['items'].each do |result|
-        puts "Artist = #{result['name']}"
-        return result['id'] if result['name'].downcase == spotify_artist_name.downcase
-      end
-      nil
-    end
-
-    # https://api.spotify.com/v1/artists/1vCWHaC5f2uS3yhpwWbIA6/albums?offset=0&limit=2&include_groups=appears_on&market=ES
-    def get_album(artist_id, album_name)
-      return nil if artist_id.nil?
-
-      url = "https://api.spotify.com/v1/artists/#{artist_id}/albums?offset=0&limit=50"
-      req = HTTP.headers("Authorization": "Bearer #{@access_token}").get(url)
-      raise req.body unless req.code.to_s.start_with?('2')
-
-      @logger.debug("body is #{req.body}")
-      resp = JSON.parse(req.body.to_s)
-      spotify_album_name = FuzzyMatch.new(resp['items'].map do |r|
-                                            r['name']
-                                          end, must_match_at_least_one_word: true).find(album_name)
-      resp['items'].each do |result|
-        puts "Album = '#{result['name']}'"
-        return result if result['name'].downcase == (spotify_album_name || '').downcase
-      end
-      nil
-    end
-
     def authorize
-      encoded = Base64.encode64("#{ENV['SPOTIFY_CLIENT_ID']}:#{ENV['SPOTIFY_CLIENT_SECRET']}").gsub(/\n/, '')
+      encoded = Base64.encode64("#{@client_id}:#{@client_secret}").gsub(/\n/, '')
       resp = HTTP.headers("Authorization": "Basic #{encoded}")
                  .post('https://accounts.spotify.com/api/token',
                        form: { grant_type: 'client_credentials' })

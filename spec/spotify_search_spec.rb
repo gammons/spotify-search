@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpotifySearch do
-  let(:spotify) { SpotifySearch::Spotify.new }
+  let(:spotify) { SpotifySearch::Searcher.new }
   let(:tests) do
     [
       {
