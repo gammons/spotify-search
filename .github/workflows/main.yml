@@ -12,6 +12,9 @@ jobs:
       with:
         ruby-version: 3.0.1
     - name: Run the default task
+      env:
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
       run: |
         gem install bundler -v 2.2.15
         bundle install
