@@ -28,6 +28,31 @@ RSpec.describe SpotifySearch do
         artist: 'Sparks',
         song: 'At Home, At Work, At Play',
         album: 'Propaganda'
+      },
+      {
+        artist: 'PETR SKOUMAL',
+        song: 'Jeden můj známej',
+        album: '...Se Nezblázni, Poločas Rozpadu'
+      },
+      {
+        artist: 'BRIAN ENO & DAVID BYRNE',
+        song: 'America Is Waiting',
+        album: 'My Life in the Bush of Ghosts'
+      },
+      {
+        artist: 'EDUARDO MATEO',
+        song: 'María',
+        album: 'Cuerpo y Alma'
+      },
+      {
+        artist: 'The Real Kids',
+        song: 'Common at Noon',
+        album: 'Better Be Good'
+      },
+      {
+        artist: 'Austra',
+        song: 'Mountain Baby (feat. Cecile Believe)',
+        album: 'HiRUDiN'
       }
     ]
   end
