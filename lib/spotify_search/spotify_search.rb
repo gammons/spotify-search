@@ -70,12 +70,13 @@ module SpotifySearch
     end
 
     def filter_string(string)
+      string = string
+        .sub(/&amp;/, '&')
+        .sub(/’/, '')
+        .sub(/'/, '')
+        .sub(/ EP/, '')
+        .gsub(/\(.*\)/, '').strip
       I18n::Backend::Transliterator.get.transliterate(string)
-                                   .sub(/&amp;/, '&')
-                                   .sub(/’/, '')
-                                   .sub(/'/, '')
-                                   .sub(/ EP/, '')
-                                   .gsub(/\(.*\)/, '').strip
     end
   end
 end

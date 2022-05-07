@@ -7,7 +7,7 @@ RSpec.describe SpotifySearch do
       {
         artist: 'Log',
         song: 'Just because you can',
-        album: 'Auto Fire Life'
+        album: 'Twenty One and Hungover'
       },
       {
         artist: 'The World/Inferno Friendship Society',
@@ -42,7 +42,7 @@ RSpec.describe SpotifySearch do
       {
         artist: 'EDUARDO MATEO',
         song: 'María',
-        album: 'Cuerpo y Alma'
+        album: 'El Tartamudo'
       },
       {
         artist: 'The Real Kids',
@@ -53,7 +53,7 @@ RSpec.describe SpotifySearch do
         artist: 'Austra',
         song: 'Mountain Baby (feat. Cecile Believe)',
         album: 'HiRUDiN'
-      }
+      },
     ]
   end
 
@@ -88,6 +88,14 @@ RSpec.describe SpotifySearch do
 
       expect(results['name']).to eq('Pure Guava')
       expect(results['id']).to eq('4RaWphn8iwAU3i6dXVhchX')
+    end
+
+    it 'filters out single apostrophe' do
+      results = spotify.album_search('Pusha T', 'It’s Almost Dry')
+
+      expect(results).to_not be_nil
+      expect(results['name']).to eq("It's Almost Dry")
+      expect(results['id']).to eq('6o38CdD7CUlZDCFhjZYLDH')
     end
   end
 end
